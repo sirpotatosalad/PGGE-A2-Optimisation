@@ -33,6 +33,11 @@ public class Autonomous : MonoBehaviour
     float speed = Random.Range(0.0f, MaxSpeed);
   }
 
+    public void SetSpeed(float speed)
+    {
+        Speed = speed;
+    }
+
   void SetRandomDirection()
   {
     float angle = 30.0f;// Random.Range(-180.0f, 180.0f);

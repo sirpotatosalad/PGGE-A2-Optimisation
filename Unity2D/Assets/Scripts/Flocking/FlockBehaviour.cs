@@ -118,93 +118,171 @@ public class FlockBehaviour : MonoBehaviour
     return (a1.transform.position - a2.transform.position).sqrMagnitude;
   }
 
-  void Execute(Flock flock, int i)
-  {
-    Vector3 flockDir = Vector3.zero;
-    Vector3 separationDir = Vector3.zero;
-    Vector3 cohesionDir = Vector3.zero;
+    //void Execute(Flock flock, int i)
+    //{
+    //  Vector3 flockDir = Vector3.zero;
+    //  Vector3 separationDir = Vector3.zero;
+    //  Vector3 cohesionDir = Vector3.zero;
 
-    float speed = 0.0f;
-    float separationSpeed = 0.0f;
+    //  float speed = 0.0f;
+    //  float separationSpeed = 0.0f;
 
-    int count = 0;
-    int separationCount = 0;
-    Vector3 steerPos = Vector3.zero;
+    //  int count = 0;
+    //  int separationCount = 0;
+    //  Vector3 steerPos = Vector3.zero;
 
-    Autonomous curr = flock.mAutonomous[i];
-    for (int j = 0; j < flock.numBoids; ++j)
+    //  Autonomous curr = flock.mAutonomous[i];
+    //  for (int j = 0; j < flock.numBoids; ++j)
+    //  {
+    //    Autonomous other = flock.mAutonomous[j];
+    //    float dist = (curr.transform.position - other.transform.position).magnitude;
+    //    if (i != j && dist < flock.visibility)
+    //    {
+    //      speed += other.Speed;
+    //      flockDir += other.TargetDirection;
+    //      steerPos += other.transform.position;
+    //      count++;
+    //    }
+    //    if (i != j)
+    //    {
+    //      if (dist < flock.separationDistance)
+    //      {
+    //        Vector3 targetDirection = (
+    //          curr.transform.position -
+    //          other.transform.position).normalized;
+
+    //        separationDir += targetDirection;
+    //        separationSpeed += dist * flock.weightSeparation;
+    //      }
+    //    }
+    //  }
+    //  if (count > 0)
+    //  {
+    //    speed = speed / count;
+    //    flockDir = flockDir / count;
+    //    flockDir.Normalize();
+
+    //    steerPos = steerPos / count;
+    //  }
+
+    //  if (separationCount > 0)
+    //  {
+    //    separationSpeed = separationSpeed / count;
+    //    separationDir = separationDir / separationSpeed;
+    //    separationDir.Normalize();
+    //  }
+
+    //  curr.TargetDirection =
+    //    flockDir * speed * (flock.useAlignmentRule ? flock.weightAlignment : 0.0f) +
+    //    separationDir * separationSpeed * (flock.useSeparationRule ? flock.weightSeparation : 0.0f) +
+    //    (steerPos - curr.transform.position) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
+    //}
+
+    void Execute(Flock flock, int i)
     {
-      Autonomous other = flock.mAutonomous[j];
-      float dist = (curr.transform.position - other.transform.position).magnitude;
-      if (i != j && dist < flock.visibility)
-      {
-        speed += other.Speed;
-        flockDir += other.TargetDirection;
-        steerPos += other.transform.position;
-        count++;
-      }
-      if (i != j)
-      {
-        if (dist < flock.separationDistance)
+        Vector3 flockDir = Vector3.zero;
+        Vector3 separationDir = Vector3.zero;
+        Vector3 steerPos = Vector3.zero;
+
+        float speed = 0.0f;
+        float separationSpeed = 0.0f;
+
+        int count = 0;
+
+        Autonomous curr = flock.mAutonomous[i];
+        Vector3 currPosition = curr.transform.position;
+
+        float visibilitySquared = flock.visibility * flock.visibility;
+        float separationDistanceSquared = flock.separationDistance * flock.separationDistance;
+
+
+        for (int j = 0; j < flock.numBoids; ++j)
         {
-          Vector3 targetDirection = (
-            curr.transform.position -
-            other.transform.position).normalized;
+            if (i == j) continue; // Skip self
 
-          separationDir += targetDirection;
-          separationSpeed += dist * flock.weightSeparation;
-        }
-      }
-    }
-    if (count > 0)
-    {
-      speed = speed / count;
-      flockDir = flockDir / count;
-      flockDir.Normalize();
+            Autonomous other = flock.mAutonomous[j];
+            Vector3 otherPosition = other.transform.position;
 
-      steerPos = steerPos / count;
-    }
+            Vector3 relativePos = currPosition - otherPosition;
+            float distSquared = relativePos.sqrMagnitude;
 
-    if (separationCount > 0)
-    {
-      separationSpeed = separationSpeed / count;
-      separationDir = separationDir / separationSpeed;
-      separationDir.Normalize();
-    }
-
-    curr.TargetDirection =
-      flockDir * speed * (flock.useAlignmentRule ? flock.weightAlignment : 0.0f) +
-      separationDir * separationSpeed * (flock.useSeparationRule ? flock.weightSeparation : 0.0f) +
-      (steerPos - curr.transform.position) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
-  }
-
-
-  IEnumerator Coroutine_Flocking()
-  {
-    while (true)
-    {
-      if (useFlocking)
-      {
-        foreach (Flock flock in flocks)
-        {
-          List<Autonomous> autonomousList = flock.mAutonomous;
-          for (int i = 0; i < autonomousList.Count; ++i)
-          {
-            Execute(flock, i);
-            if (i % BatchSize == 0)
+            if (distSquared < visibilitySquared)
             {
-              yield return null;
+                speed += other.Speed;
+                flockDir += other.TargetDirection;
+                steerPos += otherPosition;
+                count++;
+
+                if (distSquared < separationDistanceSquared)
+                {
+                    separationDir += relativePos.normalized;
+                    separationSpeed += distSquared * flock.weightSeparation;
+                }
             }
-          }
-          yield return null;
         }
-      }
-      yield return new WaitForSeconds(TickDuration);
+
+        if (count > 0)
+        {
+            speed /= count;
+            flockDir /= count;
+            flockDir.Normalize();
+
+            steerPos /= count;
+        }
+
+        if (count > 1)
+        {
+            separationSpeed /= count - 1;
+            separationDir.Normalize();
+        }
+
+        curr.TargetDirection =
+            flockDir * speed * (flock.useAlignmentRule ? flock.weightAlignment : 0.0f) +
+            separationDir * separationSpeed * (flock.useSeparationRule ? flock.weightSeparation : 0.0f) +
+            (steerPos - currPosition) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
     }
-  }
 
 
-  void SeparationWithEnemies_Internal(
+    IEnumerator Coroutine_Flocking()
+    {
+        WaitForSeconds wait = new WaitForSeconds(TickDuration);
+        float maxFrameTime = 0.016f;
+
+        while (useFlocking)
+        {
+            foreach (Flock flock in flocks)
+            {
+                List<Autonomous> autonomousList = flock.mAutonomous;
+                int index = 0;
+
+                while (index < autonomousList.Count)
+                {
+                    int endIndex = Mathf.Min(index + BatchSize, autonomousList.Count);
+
+                    for (int j = index; j < endIndex; j++)
+                    {
+                        Execute(flock, j);
+                    }
+
+                    index = endIndex;
+
+                    float frameTime = Time.deltaTime;
+
+                    if (frameTime > maxFrameTime)
+                    {
+                        // If frame time exceeds the maximum target, yield and resume in the next frame
+                        yield return null;
+                        break;
+                    }
+                }
+            }
+
+            yield return wait;
+        }
+    }
+
+
+    void SeparationWithEnemies_Internal(
     List<Autonomous> boids, 
     List<Autonomous> enemies, 
     float sepDist, 
