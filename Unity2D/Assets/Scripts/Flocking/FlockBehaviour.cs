@@ -116,10 +116,10 @@ public class FlockBehaviour : MonoBehaviour
     boid.RotationSpeed = flock.maxRotationSpeed;
   }
 
-  static float Distance(Autonomous a1, Autonomous a2)
-  {
-    return (a1.transform.position - a2.transform.position).sqrMagnitude;
-  }
+  //static float Distance(Autonomous a1, Autonomous a2)
+  //{
+  //  return (a1.transform.position - a2.transform.position).sqrMagnitude;
+  //}
 
     //void Execute(Flock flock, int i)
     //{
@@ -181,69 +181,69 @@ public class FlockBehaviour : MonoBehaviour
     //    (steerPos - curr.transform.position) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
     //}
 
-    void Execute(Flock flock, int i)
-    {
-        Vector3 flockDir = Vector3.zero;
-        Vector3 separationDir = Vector3.zero;
-        Vector3 steerPos = Vector3.zero;
+    //void Execute(Flock flock, int i)
+    //{
+    //    Vector3 flockDir = Vector3.zero;
+    //    Vector3 separationDir = Vector3.zero;
+    //    Vector3 steerPos = Vector3.zero;
 
-        float speed = 0.0f;
-        float separationSpeed = 0.0f;
+    //    float speed = 0.0f;
+    //    float separationSpeed = 0.0f;
 
-        int count = 0;
+    //    int count = 0;
 
-        Autonomous curr = flock.mAutonomous[i];
-        Vector3 currPosition = curr.transform.position;
+    //    Autonomous curr = flock.mAutonomous[i];
+    //    Vector3 currPosition = curr.transform.position;
 
-        float visibilitySquared = flock.visibility * flock.visibility;
-        float separationDistanceSquared = flock.separationDistance * flock.separationDistance;
+    //    float visibilitySquared = flock.visibility * flock.visibility;
+    //    float separationDistanceSquared = flock.separationDistance * flock.separationDistance;
 
 
-        for (int j = 0; j < flock.numBoids; ++j)
-        {
-            if (i == j) continue; // Skip self
+    //    for (int j = 0; j < flock.numBoids; ++j)
+    //    {
+    //        if (i == j) continue; // Skip self
 
-            Autonomous other = flock.mAutonomous[j];
-            Vector3 otherPosition = other.transform.position;
+    //        Autonomous other = flock.mAutonomous[j];
+    //        Vector3 otherPosition = other.transform.position;
 
-            Vector3 relativePos = currPosition - otherPosition;
-            float distSquared = relativePos.sqrMagnitude;
+    //        Vector3 relativePos = currPosition - otherPosition;
+    //        float distSquared = relativePos.sqrMagnitude;
 
-            if (distSquared < visibilitySquared)
-            {
-                speed += other.Speed;
-                flockDir += other.TargetDirection;
-                steerPos += otherPosition;
-                count++;
+    //        if (distSquared < visibilitySquared)
+    //        {
+    //            speed += other.Speed;
+    //            flockDir += other.TargetDirection;
+    //            steerPos += otherPosition;
+    //            count++;
 
-                if (distSquared < separationDistanceSquared)
-                {
-                    separationDir += relativePos.normalized;
-                    separationSpeed += distSquared * flock.weightSeparation;
-                }
-            }
-        }
+    //            if (distSquared < separationDistanceSquared)
+    //            {
+    //                separationDir += relativePos.normalized;
+    //                separationSpeed += distSquared * flock.weightSeparation;
+    //            }
+    //        }
+    //    }
 
-        if (count > 0)
-        {
-            speed /= count;
-            flockDir /= count;
-            flockDir.Normalize();
+    //    if (count > 0)
+    //    {
+    //        speed /= count;
+    //        flockDir /= count;
+    //        flockDir.Normalize();
 
-            steerPos /= count;
-        }
+    //        steerPos /= count;
+    //    }
 
-        if (count > 1)
-        {
-            separationSpeed /= count - 1;
-            separationDir.Normalize();
-        }
+    //    if (count > 1)
+    //    {
+    //        separationSpeed /= count - 1;
+    //        separationDir.Normalize();
+    //    }
 
-        curr.TargetDirection =
-            flockDir * speed * (flock.useAlignmentRule ? flock.weightAlignment : 0.0f) +
-            separationDir * separationSpeed * (flock.useSeparationRule ? flock.weightSeparation : 0.0f) +
-            (steerPos - currPosition) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
-    }
+    //    curr.TargetDirection =
+    //        flockDir * speed * (flock.useAlignmentRule ? flock.weightAlignment : 0.0f) +
+    //        separationDir * separationSpeed * (flock.useSeparationRule ? flock.weightSeparation : 0.0f) +
+    //        (steerPos - currPosition) * (flock.useCohesionRule ? flock.weightCohesion : 0.0f);
+    //}
 
 
     //IEnumerator Coroutine_Flocking()
@@ -284,6 +284,7 @@ public class FlockBehaviour : MonoBehaviour
     //    }
     //}
 
+    // using similar logical structure to the unoptimised version, the coroutine is modified to allow the implementation of a job system to run the Execute() function
     IEnumerator Coroutine_Flocking()
     {
         WaitForSeconds wait = new WaitForSeconds(TickDuration);
@@ -294,7 +295,7 @@ public class FlockBehaviour : MonoBehaviour
             {
                 List<Autonomous> autonomousList = flock.mAutonomous;
 
-                // Allocate NativeArrays to pass data to the job
+                // allocate NativeArrays to pass data to the job
                 NativeArray<Vector3> positions = new NativeArray<Vector3>(autonomousList.Count, Allocator.TempJob);
                 NativeArray<Vector3> directions = new NativeArray<Vector3>(autonomousList.Count, Allocator.TempJob);
                 NativeArray<float> speeds = new NativeArray<float>(autonomousList.Count, Allocator.TempJob);
@@ -302,7 +303,7 @@ public class FlockBehaviour : MonoBehaviour
                 NativeArray<Vector3> modifiedDirections = new NativeArray<Vector3>(autonomousList.Count, Allocator.TempJob);
                 NativeArray<float> modifiedSpeeds = new NativeArray<float>(autonomousList.Count, Allocator.TempJob);
 
-                // Populate NativeArrays with current data
+                // populate NativeArrays with current data
                 for (int i = 0; i < autonomousList.Count; ++i)
                 {
                     positions[i] = autonomousList[i].transform.position;
@@ -310,7 +311,7 @@ public class FlockBehaviour : MonoBehaviour
                     speeds[i] = autonomousList[i].Speed;
                 }
 
-                // Create a FlockingJob and set its parameters
+                // create a FlockingJob
                 FlockingJob flockingJob = new FlockingJob
                 {
                     VisibilitySquared = flock.visibility * flock.visibility,
@@ -326,13 +327,10 @@ public class FlockBehaviour : MonoBehaviour
                     ModifiedSpeeds = modifiedSpeeds
                 };
 
-                // Schedule the job
                 JobHandle jobHandle = flockingJob.Schedule(autonomousList.Count, BatchSize);
-
-                // Wait for the job to complete
                 jobHandle.Complete();
 
-                // Update the modified data back to the Autonomous instances
+                // update the modified data back to the Autonomous instances
                 for (int i = 0; i < autonomousList.Count; ++i)
                 {
                     autonomousList[i].transform.position = modifiedPositions[i];
@@ -340,7 +338,7 @@ public class FlockBehaviour : MonoBehaviour
                     autonomousList[i].SetSpeed(modifiedSpeeds[i]);
                 }
 
-                // Dispose of NativeArrays
+                // dispose of NativeArrays
                 positions.Dispose();
                 directions.Dispose();
                 speeds.Dispose();
@@ -354,34 +352,34 @@ public class FlockBehaviour : MonoBehaviour
     }
 
 
-    void SeparationWithEnemies_Internal(
-    List<Autonomous> boids, 
-    List<Autonomous> enemies, 
-    float sepDist, 
-    float sepWeight)
-  {
-    for(int i = 0; i < boids.Count; ++i)
-    {
-      for (int j = 0; j < enemies.Count; ++j)
-      {
-        float dist = (
-          enemies[j].transform.position -
-          boids[i].transform.position).magnitude;
-        if (dist < sepDist)
-        {
-          Vector3 targetDirection = (
-            boids[i].transform.position -
-            enemies[j].transform.position).normalized;
+  //  void SeparationWithEnemies_Internal(
+  //  List<Autonomous> boids, 
+  //  List<Autonomous> enemies, 
+  //  float sepDist, 
+  //  float sepWeight)
+  //{
+  //  for(int i = 0; i < boids.Count; ++i)
+  //  {
+  //    for (int j = 0; j < enemies.Count; ++j)
+  //    {
+  //      float dist = (
+  //        enemies[j].transform.position -
+  //        boids[i].transform.position).magnitude;
+  //      if (dist < sepDist)
+  //      {
+  //        Vector3 targetDirection = (
+  //          boids[i].transform.position -
+  //          enemies[j].transform.position).normalized;
 
-          boids[i].TargetDirection += targetDirection;
-          boids[i].TargetDirection.Normalize();
+  //        boids[i].TargetDirection += targetDirection;
+  //        boids[i].TargetDirection.Normalize();
 
-          boids[i].TargetSpeed += dist * sepWeight;
-          boids[i].TargetSpeed /= 2.0f;
-        }
-      }
-    }
-  }
+  //        boids[i].TargetSpeed += dist * sepWeight;
+  //        boids[i].TargetSpeed /= 2.0f;
+  //      }
+  //    }
+  //  }
+  //}
 
     //IEnumerator Coroutine_SeparationWithEnemies()
     //{
@@ -407,9 +405,12 @@ public class FlockBehaviour : MonoBehaviour
     //    }
     //}
 
+
+    // using similar logical structure to the unoptimised version, this coroutine is modified to allow the implementation of a job system
+    // additionally the job also makes use of the Internal function of SeparationWithEnemies
     IEnumerator Coroutine_SeparationWithEnemies()
     {
-        WaitForSeconds wait = new WaitForSeconds(TickDuration); // Use your desired TickDuration
+        WaitForSeconds wait = new WaitForSeconds(TickDuration);
 
         while (true)
         {
@@ -424,13 +425,13 @@ public class FlockBehaviour : MonoBehaviour
                     List<Autonomous> boids = flock.mAutonomous;
                     List<Autonomous> enemyBoids = enemies.mAutonomous;
 
-                    // Allocate NativeArrays to pass data to the job
+                    // allocate NativeArrays to pass data to the job
                     NativeArray<Vector3> boidPositions = new NativeArray<Vector3>(boids.Count, Allocator.TempJob);
                     NativeArray<Vector3> enemyPositions = new NativeArray<Vector3>(enemyBoids.Count, Allocator.TempJob);
                     NativeArray<Vector3> modifiedDirections = new NativeArray<Vector3>(boids.Count, Allocator.TempJob);
                     NativeArray<float> modifiedSpeeds = new NativeArray<float>(boids.Count, Allocator.TempJob);
 
-                    // Populate NativeArrays with current data
+                    // populate NativeArrays with current data
                     for (int k = 0; k < boids.Count; ++k)
                     {
                         boidPositions[k] = boids[k].transform.position;
@@ -438,13 +439,13 @@ public class FlockBehaviour : MonoBehaviour
                         modifiedSpeeds[k] = boids[k].TargetSpeed;
                     }
 
-                    // Populate NativeArray with enemy positions
+                    // populate NativeArray with enemy positions
                     for (int l = 0; l < enemyBoids.Count; ++l)
                     {
                         enemyPositions[l] = enemyBoids[l].transform.position;
                     }
 
-                    // Create a SeparationWithEnemiesJob and set its parameters
+                    // create a SeparationWithEnemiesJob
                     SeparationWithEnemiesJob separationJob = new SeparationWithEnemiesJob
                     {
                         SeparationDistance = flock.enemySeparationDistance,
@@ -455,20 +456,17 @@ public class FlockBehaviour : MonoBehaviour
                         ModifiedSpeeds = modifiedSpeeds
                     };
 
-                    // Schedule the job
                     JobHandle jobHandle = separationJob.Schedule(boids.Count, BatchSize);
-
-                    // Wait for the job to complete
                     jobHandle.Complete();
 
-                    // Update the modified data back to the Autonomous instances
+                    // update the modified data back to the Autonomous instances
                     for (int m = 0; m < boids.Count; ++m)
                     {
                         boids[m].TargetDirection = modifiedDirections[m];
                         boids[m].TargetSpeed = modifiedSpeeds[m];
                     }
 
-                    // Dispose of NativeArrays
+                    // dispose of NativeArrays
                     boidPositions.Dispose();
                     enemyPositions.Dispose();
                     modifiedDirections.Dispose();
@@ -515,9 +513,10 @@ public class FlockBehaviour : MonoBehaviour
     //    }
     //}
 
+    // as with the modified coroutines above, the logical structure of this coroutine is similar to its unoptimised version with modifications to allow the implementation of a job system
     IEnumerator Coroutine_AvoidObstacles()
     {
-        WaitForSeconds wait = new WaitForSeconds(TickDuration); // Use your desired TickDuration
+        WaitForSeconds wait = new WaitForSeconds(TickDuration);
 
         while (true)
         {
@@ -527,25 +526,25 @@ public class FlockBehaviour : MonoBehaviour
                 {
                     List<Autonomous> autonomousList = flock.mAutonomous;
 
-                    // Allocate NativeArrays to pass data to the job
+                    // allocate NativeArrays to pass data to the job
                     NativeArray<Vector3> autonomousPositions = new NativeArray<Vector3>(autonomousList.Count, Allocator.TempJob);
                     NativeArray<Vector3> obstaclePositions = new NativeArray<Vector3>(mObstacles.Count, Allocator.TempJob);
                     NativeArray<Vector3> modifiedDirections = new NativeArray<Vector3>(autonomousList.Count, Allocator.TempJob);
 
-                    // Populate NativeArrays with current data
+                    // populate NativeArrays with current data
                     for (int i = 0; i < autonomousList.Count; ++i)
                     {
                         autonomousPositions[i] = autonomousList[i].transform.position;
                         modifiedDirections[i] = autonomousList[i].TargetDirection;
                     }
 
-                    // Populate NativeArray with obstacle positions
+                    // populate NativeArray with obstacle positions
                     for (int j = 0; j < mObstacles.Count; ++j)
                     {
                         obstaclePositions[j] = mObstacles[j].transform.position;
                     }
 
-                    // Create an AvoidObstaclesJob and set its parameters
+                    // create an AvoidObstaclesJob
                     AvoidObstaclesJob avoidObstaclesJob = new AvoidObstaclesJob
                     {
                         AvoidanceRadius = flock.weightAvoidObstacles,
@@ -554,19 +553,16 @@ public class FlockBehaviour : MonoBehaviour
                         ModifiedDirections = modifiedDirections
                     };
 
-                    // Schedule the job
                     JobHandle jobHandle = avoidObstaclesJob.Schedule(autonomousList.Count, BatchSize);
-
-                    // Wait for the job to complete
                     jobHandle.Complete();
 
-                    // Update the modified data back to the Autonomous instances
+                    // update the modified data back to the Autonomous instances
                     for (int i = 0; i < autonomousList.Count; ++i)
                     {
                         autonomousList[i].TargetDirection = modifiedDirections[i];
                     }
 
-                    // Dispose of NativeArrays
+                    // dispose of NativeArrays
                     autonomousPositions.Dispose();
                     obstaclePositions.Dispose();
                     modifiedDirections.Dispose();
@@ -575,7 +571,6 @@ public class FlockBehaviour : MonoBehaviour
             yield return wait;
         }
     }
-
 
     IEnumerator Coroutine_Random_Motion_Obstacles()
   {
@@ -640,7 +635,6 @@ public class FlockBehaviour : MonoBehaviour
 
             autonomousList[i].TargetDirection += dir * flock.weightRandom;
             autonomousList[i].TargetDirection.Normalize();
-            //Debug.Log(autonomousList[i].TargetDirection);
 
             float speed = Random.Range(1.0f, autonomousList[i].MaxSpeed);
             autonomousList[i].TargetSpeed += speed * flock.weightSeparation;
@@ -769,25 +763,25 @@ public class FlockBehaviour : MonoBehaviour
     [BurstCompile]
     public struct FlockingJob : IJobParallelFor
     {
-        // Parameters for the flocking behavior
         public float VisibilitySquared;
         public float SeparationDistanceSquared;
         public float WeightAlignment;
         public float WeightSeparation;
         public float WeightCohesion;
 
+        // arrays for boid data
         [ReadOnly] public NativeArray<Vector3> AutonomousPositions;
         [ReadOnly] public NativeArray<Vector3> AutonomousDirections;
         [ReadOnly] public NativeArray<float> AutonomousSpeeds;
 
+        // array to store new boid data after applying calculations
         public NativeArray<Vector3> ModifiedPositions;
         public NativeArray<Vector3> ModifiedDirections;
         public NativeArray<float> ModifiedSpeeds;
 
-        // You may need to add more data members based on the specifics of your logic
-
         public void Execute(int i)
         {
+            // obtain current data for each boid pos
             Vector3 currPosition = AutonomousPositions[i];
             Vector3 currDirection = AutonomousDirections[i];
             float currSpeed = AutonomousSpeeds[i];
@@ -801,15 +795,18 @@ public class FlockBehaviour : MonoBehaviour
 
             int count = 0;
 
+            //using an optimised version provided execute logic
             for (int j = 0; j < AutonomousPositions.Length; ++j)
             {
+                // preventing self iteration
                 if (i == j)
-                    continue; // Skip self
+                    continue;
 
                 Vector3 otherPosition = AutonomousPositions[j];
                 Vector3 relativePos = currPosition - otherPosition;
                 float distSquared = relativePos.sqrMagnitude;
 
+                // changed squaring operations to be done outside the for loop to save on performance
                 if (distSquared < VisibilitySquared)
                 {
                     speed += AutonomousSpeeds[j];
@@ -839,26 +836,30 @@ public class FlockBehaviour : MonoBehaviour
                 separationDir.Normalize();
             }
 
-            // Apply flocking rules
+            // apply flocking rules to boid
             currDirection =
                 flockDir * speed * (WeightAlignment > 0 ? WeightAlignment : 0.0f) +
                 separationDir * separationSpeed * (WeightSeparation > 0 ? WeightSeparation : 0.0f) +
                 (steerPos - currPosition) * (WeightCohesion > 0 ? WeightCohesion : 0.0f);
 
-            // Update the modified data back to the arrays
+            // update the modified data back to the arrays
             ModifiedPositions[i] = currPosition;
-            ModifiedDirections[i] = currDirection.normalized; // Normalize the direction
+            ModifiedDirections[i] = currDirection.normalized;
             ModifiedSpeeds[i] = speed;
         }
     }
 
     [BurstCompile]
+    // logic for the job structure is simply copied from the original function
     public struct AvoidObstaclesJob : IJobParallelFor
     {
         public float AvoidanceRadius;
 
+        // arrays for obstacle and boid positions 
         [ReadOnly] public NativeArray<Vector3> AutonomousPositions;
         [ReadOnly] public NativeArray<Vector3> ObstaclePositions;
+
+        // array to store new boid data after calculations
         public NativeArray<Vector3> ModifiedDirections;
 
         public void Execute(int i)
@@ -880,13 +881,17 @@ public class FlockBehaviour : MonoBehaviour
     }
 
     [BurstCompile]
+    // logic for the job structure is simply copied from the original function
     public struct SeparationWithEnemiesJob : IJobParallelFor
     {
         public float SeparationDistance;
         public float SeparationWeight;
 
+        // similar to previous job structures, simply to store boid and enemy positions
         [ReadOnly] public NativeArray<Vector3> BoidPositions;
         [ReadOnly] public NativeArray<Vector3> EnemyPositions;
+
+        // same as above
         public NativeArray<Vector3> ModifiedDirections;
         public NativeArray<float> ModifiedSpeeds;
 

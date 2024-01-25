@@ -1075,7 +1075,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 400, y: 225, z: 1}
+  m_LocalScale: {x: 469.82556, y: 293.928, z: 0.73482}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1277,7 +1277,7 @@ MonoBehaviour:
   TickDurationRandom: 1
   BoidIncr: 2500
   useFlocking: 1
-  BatchSize: 250
+  BatchSize: 500
   flocks:
   - PrefabBoid: {fileID: 1138522166324048232, guid: 1b7bb4e6c0d12884c97216ff0bcde98f, type: 3}
     name: Boids
